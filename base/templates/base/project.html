@@ -1,0 +1,173 @@
+{% extends 'base/header.html' %}
+{% load define_action %}
+{% block content %}
+
+	
+
+    <h1>{{projects.project_name}}</h1>
+     <form  method="post" action="{%url 'base:search' projects.id %}">
+        {% csrf_token %}
+        <label>Enter a keyword to search </label>
+        <input type="text" name="textfield" value="">
+        <input style="background-color:#F4EB16; color:blue" class="btn btn-outline-info" type="submit" value="Search">
+    </form>
+{% if projects.total_views > 0 %}
+<p style="margin: auto; width: 50%;"><strong style="font-size:200%;" >{{projects.total_views}}</strong> people know about <strong style="font-size:150%;">{{projects.search_term}}</strong>.</p>
+<p ><h5>Among the vidoes published  </h5></p>
+
+<div class="row">
+    <div class="col s12 m6">
+      <div class="card green darken-4">
+        <div class="card-content white-text">
+          <span class="card-title"><strong>{% percentage projects.fav_titles projects.unfav_titles%} percent</strong></span>
+          <p>Have favourable titles </p>
+        </div>
+      </div>
+    </div>
+     <div class="col s12 m6">
+      <div class="card red accent-4">
+        <div class="card-content white-text">
+          <span class="card-title"><strong>{% percentage projects.unfav_titles projects.fav_titles%} percent</strong></span>
+          <p>Have unfavourable titles </p> </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="row">
+    <div class="col s12 m6">
+      <div class="card green darken-4">
+        <div class="card-content white-text">
+          <span class="card-title"><strong>Favourable Titles</strong></span>
+          <p><strong>Likes: <strong style="font-size:150%;">{{projects.likes_fav}}</strong></strong>
+          <br>
+      		<strong>Dislikes: <strong style="font-size:150%;">{{projects.dislikes_fav}}</strong></strong></p>
+        </div>
+      </div>
+    </div>
+     <div class="col s12 m6">
+      <div class="card red accent-4">
+        <div class="card-content white-text">
+          <span class="card-title"><strong>Unfavourable Titles</strong></span>
+          <p><strong>Likes: <strong style="font-size:150%;">{{projects.likes_unfav}}</strong></strong>
+          <br>
+      		<strong>Dislikes: <strong style="font-size:150%;">{{projects.dislikes_unfav}} </strong></strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin: auto; width: 50%;" class="col s6 m3">
+      <div class="card orange darken-4">
+        <div class="card-content white-text">
+          <span class="card-title"><strong style="margin: auto; width: 50%;">Popularity Score: {{projects.total_favourability}}</strong></span>
+        </div>
+      </div>
+    </div>
+  </div> 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+  <div class="chart-container" style="position: relative; height:30vh;margin: auto; width:80vw">
+    <canvas id="myChart" style="padding-left: 30px"></canvas>
+  
+</div>
+  <script>
+  	months = {{labels|safe}};
+    y1 = {{y1|safe}};
+    y2 = {{y2|safe}};
+    shrink_factor = 1;
+    shrink_factor = get_shrink_factor(months.length,17);
+    list = shrink(months,y1,y2,shrink_factor);
+	console.log(list[0]);
+	console.log(list[1]);
+	console.log(list[2]);
+	months = list[0];
+	y1 = list[1];
+	y2 = list[2];
+var ctx = document.getElementById('myChart').getContext('2d');
+var chart = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [{
+            label: 'Favourable Videos',
+            backgroundColor: 'rgba(255, 99, 132,0)',
+            borderColor: 'rgb(0, 255, 0)',
+            data:y1
+        },
+        {
+            label: 'Unfavourable Videos',
+            backgroundColor: 'rgba(255, 99, 132,0)',
+            borderColor: 'rgb(255, 0, 0)',
+            data:y2
+        }]
+    },
+
+    // Configuration options go here
+    options: {
+    	legend: {
+            display: true,
+            labels: {
+                fontColor: 'rgb(255, 99, 132)',
+                padding: 150
+            }
+        },
+         tooltips: {
+         	backgroundColor:'rbga(0,0,0,0)',
+            titleFontColor:'rgb(0,0,0)',
+            bodyFontColor: 'rgb(0,0,0)'
+        }
+    }
+});
+
+	function get_shrink_factor(length,no_of_data_points){
+			console.log(length);
+			var x = 0;
+			console.log(no_of_data_points);
+			if(length > no_of_data_points){
+				x = Math.round(length/no_of_data_points);
+				console.log(x);
+				if(x < length/no_of_data_points){
+					x += 1;
+					console.log(length/no_of_data_points);
+				}
+			}
+      else{
+        console.log("x is still zero");
+        x = 1
+      }
+			console.log(x);
+			return x;
+
+	}
+	
+	function shrink(m,y1,y2,shrink_factor){
+		new_m = [];
+		new_y1 = [];
+		new_y2 = [];
+
+		for(i=0;i<m.length;){
+			new_m.push(m[i]);
+			j = i;
+			console.log(j);
+			y1_el = 0;
+			y2_el = 0;
+			i = i+shrink_factor
+			for(;j<i;j++){
+				if(j > m.length-1)
+				{
+					break;
+				}
+				y1_el += y1[j];
+				y2_el += y2[j];
+			}
+			new_y1.push(y1_el);
+			new_y2.push(y2_el);
+		}
+		return [new_m,new_y1,new_y2];
+	}
+  </script>
+{% endif %}
+{% endblock %}
+
+

@@ -1,0 +1,19 @@
+{% extends 'base/header.html' %}
+{% block content %}
+<h1 style="margin: auto; width: 50%;">How It Works</h1>
+<p>Dynamic FeedBack is a new way of getting customer feedback. If you have a product and want to know about its popularity you could do a
+search on YouTube among other things and watch all the videos mentioning your product to get an idea of the popularity of your product or
+    you can let Dynamic FeedBack do the work for you. Dynamic FeedBack does a YouTube search for your product. It grabs the video titles in
+    the results and does a sentiment analysis on the those titles. By classifying YouTube video titles as of positive or negative sentiment we can know whether the content
+    creator thinks well about our product or not. We now know what the content creator thinks about our product. What about the viewers? We could do a sentiment analysis of the comments
+but that's unnecessary because YouTube already has a method of letting people know whether a viewer has liked a video or not. They're the Like
+and Dislike buttons. We must be careful about drawing conclusions from sentiment of the YouTube title and number of Likes and Dislikes. If the
+sentiment of title of the video is negative doesn't mean that people dislike our product. But if the sentiment is negative and if a large
+proportion of the viewers Like the video then that means that they agree with the content creator's view point and our product is unpopular.
+If the sentiment of the video title is negative and large proportion of viewers Dislike the video that means people don't agree with the content
+creator and people actually like our product even though the content creator doesn't. Similarly we can't say whether the product was a success
+if the sentiment of majority of video titles is positive. We must look at the Like to Dislike ratio to find out people's opinion. From the
+number of videos that mention our product and the number views they have we can get an idea of how many people know about our product.
+Dynamic FeedBack does this for you so that you can get customer feed back fast and easy and adapt to customer desires thus making your product
+development cycle more dynamic.</p>
+{% endblock %}
