@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
+
 
 class Project(models.Model):
     customer = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
@@ -15,11 +15,16 @@ class Project(models.Model):
     likes_unfav = models.IntegerField(default=0)
     dislikes_unfav = models.IntegerField(default=0)
     total_favourability = models.IntegerField(default=0)
-    months = ArrayField(models.CharField(max_length=10,default=""), null=True, blank=True)
-    y1 = ArrayField(models.IntegerField(default=0), null=True, blank=True)
-    y2 = ArrayField(models.IntegerField(default=0), null=True, blank=True)
 
     def __str__(self):
         return self.project_name
+
+class DataPoints(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    month   = models.CharField(max_length=20)
+    y1      = models.IntegerField(default=0)
+    y2      = models.IntegerField(default=0)
+
+    
 
 

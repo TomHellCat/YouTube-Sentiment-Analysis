@@ -4,8 +4,8 @@ from django.contrib.auth.forms import  UserCreationForm, AuthenticationForm
 from django.contrib.auth import logout, authenticate, login
 from django.contrib import messages
 from .models import Project
-#from .youtubeClient import YoutubeClient
-from .newClient import YoutubeClient, VideoInfo
+from .models import DataPoints
+from .YouTubeClient import YouTubeClient, VideoInfo
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -43,11 +43,32 @@ def project(request):
 
 def project2(request,pk):
     proj = Project.objects.get(id=pk)
+
+    Data = DataPoints.objects.filter(project=proj)
+
+    m = []
+    y1 = []
+    y2 = []
+
+    for i in range(len(Data)):
+        m.append(Data[i].month)
+        y1.append(Data[i].y1)
+        y2.append(Data[i].y2)
+        
+    print("retreived y1: ",y1)
+    print("retreived y2: ",y2)
+    y3 = [x for _,x in sorted(zip(m,y1))]
     
-    m = proj.months
-    y1 = proj.y1
-    y2 = proj.y2
-    return render(request, 'base/project.html',{"projects": proj,"labels":m,"y1":y1, "y2":y2})
+    y4 = [x for _,x in sorted(zip(m,y2))]
+    
+
+    print("sorted y3: ", y3)
+    print("sorted y4: ",y4)
+
+    m = sorted(m)
+    print("sorted m: ",m)
+
+    return render(request, 'base/project.html',{"projects": proj,"labels":m,"y1":y3, "y2":y4})
 
 def search(request,pk):
     proj = Project.objects.get(id=pk)
@@ -56,76 +77,32 @@ def search(request,pk):
         search = request.POST.get('textfield', None)
         print(search)
 
-    yt = YoutubeClient(search)
-    yt.create_video_info_objects()
-    format = "%d %b %Y"
-    months = yt.get_months()
-    print(len(months))
-    m = yt.monthlist_fast(months[0],months[len(months)-1])
-    for i in months:
-        print(i.strftime(format))
-    print(m)
-    y = yt.get_y_axis(m,months)
-    print(y)
-    fav,unfav = yt.get_total_fav_unfav()
-    print("fav: ",fav, " unfav: ",unfav)
+    yt = YouTubeClient(search)
     
-    print("views: ", yt.get_total_views())
-    lfav,lunfav = yt.total_likes_fav_unfav()
-
-    print("likes for fav: ",lfav," likes for unfav: ", lunfav)
-
-    dfav, dunfav = yt.total_dislikes_fav_unfav()
-
-    print("dislikes for fav: ",dfav," dislikes for unfav: ", dunfav)
-    t_fav = lfav + dunfav
-    t_unfav = lunfav + dfav
-    t_fav = round(t_fav/(t_fav+t_unfav)*100)
-    print("t_fav: ", t_fav, " t_unfav: ", t_unfav)
-
-    m_fav,m_unfav = yt.fav_unfav_monthlist(months)
-    print("m_fav: ")
-    for i in m_fav:
-        print(i.strftime(format))
-    print("m_unfav: ")
-    for i in m_unfav:
-        print(i.strftime(format))
-
-    y_fav = yt.get_y_axis(m,m_fav)
-    print("y_fav: ",y_fav)
-    y_unfav = yt.get_y_axis(m,m_unfav)
-    print("y_unfav: ", y_unfav)
-
-    new_m = []
-    for i in m:
-        s = ''
-        j = 0
-        while(i[j] != " "):
-            s += i[j]
-            j += 1
-        s += "\n"
-        j += 1
-        for k in range(j,len(i)):
-            s += i[k]
-        new_m.append(s)
-
-    print(new_m)
-    
-
     proj.search_term = search
-    proj.total_views = yt.get_total_views()
-    proj.fav_titles = fav
-    proj.unfav_titles = unfav
-    proj.likes_fav = lfav
-    proj.dislikes_fav = dfav
-    proj.likes_unfav = lunfav
-    proj.dislikes_unfav = dunfav
-    proj.total_favourability = t_fav
-    proj.months = new_m
-    proj.y1 = y_fav
-    proj.y2 = y_unfav
+    proj.total_views = yt.views
+    proj.fav_titles = yt.positive
+    proj.unfav_titles = 50-yt.positive
+    proj.likes_fav = yt.fav_likes
+    proj.dislikes_fav = yt.fav_dislikes
+    proj.likes_unfav = yt.unfav_likes
+    proj.dislikes_unfav = yt.unfav_dislikes
+    proj.total_favourability = ((yt.fav_likes+yt.unfav_dislikes)/(yt.fav_likes+yt.unfav_dislikes+yt.fav_dislikes+yt.unfav_likes))*100
+    print(proj.total_favourability)
     proj.save()
-    return render(request, 'base/project.html',{"projects": proj,"labels":new_m,"y1":y_fav, "y2":y_unfav})
+    Data = DataPoints.objects.filter(project=proj)
+    for i in range(len(Data)):
+        Data[i].delete()
+        
+    print(yt.mlist)
+    for i in range(len(yt.mlist)):
+        data = DataPoints(project=proj,month=yt.mlist[i],y1=yt.y1[i],y2=yt.y2[i])
+        data.save()
+    print("from search: ",yt.mlist)
+    print("from search: ",yt.y1)
+    print("from search: ",yt.y2)
+
+    return render(request, 'base/project.html',{"projects": proj,"labels":yt.mlist,"y1":yt.y1, "y2":yt.y2})
     
 
 def header(request):
