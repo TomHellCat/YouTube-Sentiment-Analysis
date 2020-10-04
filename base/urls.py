@@ -26,8 +26,7 @@ urlpatterns = [
     path('header/', views.header, name='header'),
     path('logout/', views.logout_request, name='logout'),
     path('home/<str:pk>/', views.deleteTask, name="delete"),
-    path('project/', views.project, name="project"),
-    path('project/<str:pk>/', views.project2, name="project2"),
-    path('search/<str:pk>/', views.search, name="search"),
-    #path('some/', views.some, name="delete"),
+    path('thing/<str:pk>',views.thing, name="thing"),
+    path('project2/<str:pk>/', views.pro, name="pro"),
+    path('createproject/', views.createProject, name="createproject"),
 ]

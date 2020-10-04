@@ -2,7 +2,7 @@
 {% block content %}
     <h1>Create New Project</h1>
 
-    <form  method="post" action="{%url 'base:project' %}">
+    <form  method="post" action="{%url 'base:createproject' %}">
         {% csrf_token %}
         <label>Enter The Project Name </label>
         <input type="text" name="textfield" value="">
@@ -11,7 +11,7 @@
     <br>
     <h1>Recent Projects</h1>
     {% for pro in projects %}
-        <a href="{%url 'base:project2'  pro.id%}">{{pro.project_name|safe}}</a>
+        <a href="{%url 'base:pro'  pro.id%}">{{pro.title|safe}}</a>
         <a class="btn btn-sm btn-danger" href="{%url 'base:delete'  pro.id%}" style="float:right;width: 100px;padding: 1px;">Delete</a>
         <br><br>
     {% endfor %}

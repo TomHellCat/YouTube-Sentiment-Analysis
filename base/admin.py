@@ -1,6 +1,8 @@
-from .models import Project
 from django.contrib import admin
 
-# Register your models here.
+from .models import Project2
+from .models import VideoInfo2
 
-admin.site.register(Project)
+admin.site.register(Project2)
+admin.site.register(VideoInfo2)
+

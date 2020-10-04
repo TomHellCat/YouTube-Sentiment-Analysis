@@ -3,11 +3,70 @@ from django.http import HttpResponse
 from django.contrib.auth.forms import  UserCreationForm, AuthenticationForm
 from django.contrib.auth import logout, authenticate, login
 from django.contrib import messages
-from .models import Project
-from .models import DataPoints
-from .YouTubeClient import YouTubeClient, VideoInfo
+
+from .models import Project2
+from .models import VideoInfo2
+
+from json import dumps
+
+from .yClient import YouTubeClient as yc, VideoInfo as vi
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from .serializers import Project2Serializer
+from .serializers import VideoInfo2Serializer
+
+def createProject(request):
+    if request.method == 'POST':
+        title = request.POST.get('textfield', None)
+        if(title != ""):
+            customer = request.user
+            proj = Project2(customer=customer,title=title)
+            proj.save()
+            print(proj)
+            return render(request, 'base/project2.html', {"projects": proj})
+        else:
+            print("you must name a project")
+            return redirect('/home')
+
+def pro(request,pk):
+    if(request.user.is_authenticated):
+        customer = request.user
+        if request.method == 'POST':
+            search_term = request.POST.get('textfield', None)
+            p = Project2.objects.get(id=pk)
+
+            p.search_term = search_term
+            p.not_objects = True
+            p.save()
+            if(len(VideoInfo2.objects.filter(project=p))>0):
+                v = VideoInfo2.objects.filter(project=p)
+                for i in v:
+                    i.delete()
+            Yclient = yc(search_term)
+            print("Created Yclient")
+            for video in Yclient.videoList:
+                v = VideoInfo2(project=p,likes=video.likes,dislikes=video.dislikes,views=video.views,sentiment=video.analysis,date=video.date,tag=video.tags)                                                    
+                v.save()
+        
+        p = Project2.objects.get(id=pk)
+        if(p.customer != customer):
+                return render(request,'base/error.html')
+        data = []
+        data.append(pk)
+        data = dumps(data)
+        return render(request,'base/project2.html',{"projects":p,"data":data})
+    else:
+        return render(request,'base/error.html')
+
+@api_view(['GET'])
+def thing(request,pk):
+    p = Project2.objects.get(id=pk)
+    video = VideoInfo2.objects.filter(project=p)
+    serializer = VideoInfo2Serializer(video,many=True)
+    
+    return Response(serializer.data)
 
 
 def user_login(request):
@@ -21,90 +80,11 @@ def how(request):
 def home(request):
     if request.user.is_authenticated:
         customer = request.user
-        project = Project.objects.filter(customer=customer)
+        project = Project2.objects.filter(customer=customer)
     else:
         return redirect("base:user_login")
     return render(request, 'base/home.html',{"projects":project})
     
-
-def project(request):
-    proj = []
-    if request.method == 'POST':
-        pro_name = request.POST.get('textfield', None)
-        if(pro_name != ""):
-            customer = request.user
-            proj = Project(customer=customer,project_name=pro_name)
-            proj.save()
-            print(proj)
-            return render(request, 'base/project.html', {"projects": proj})
-        else:
-            print("you must name a project")
-            return redirect('/home')
-
-def project2(request,pk):
-    proj = Project.objects.get(id=pk)
-
-    Data = DataPoints.objects.filter(project=proj)
-
-    m = []
-    y1 = []
-    y2 = []
-
-    for i in range(len(Data)):
-        m.append(Data[i].month)
-        y1.append(Data[i].y1)
-        y2.append(Data[i].y2)
-        
-    print("retreived y1: ",y1)
-    print("retreived y2: ",y2)
-    y3 = [x for _,x in sorted(zip(m,y1))]
-    
-    y4 = [x for _,x in sorted(zip(m,y2))]
-    
-
-    print("sorted y3: ", y3)
-    print("sorted y4: ",y4)
-
-    m = sorted(m)
-    print("sorted m: ",m)
-
-    return render(request, 'base/project.html',{"projects": proj,"labels":m,"y1":y3, "y2":y4})
-
-def search(request,pk):
-    proj = Project.objects.get(id=pk)
-    search = ''
-    if request.method == 'POST':
-        search = request.POST.get('textfield', None)
-        print(search)
-
-    yt = YouTubeClient(search)
-    
-    proj.search_term = search
-    proj.total_views = yt.views
-    proj.fav_titles = yt.positive
-    proj.unfav_titles = 50-yt.positive
-    proj.likes_fav = yt.fav_likes
-    proj.dislikes_fav = yt.fav_dislikes
-    proj.likes_unfav = yt.unfav_likes
-    proj.dislikes_unfav = yt.unfav_dislikes
-    proj.total_favourability = ((yt.fav_likes+yt.unfav_dislikes)/(yt.fav_likes+yt.unfav_dislikes+yt.fav_dislikes+yt.unfav_likes))*100
-    print(proj.total_favourability)
-    proj.save()
-    Data = DataPoints.objects.filter(project=proj)
-    for i in range(len(Data)):
-        Data[i].delete()
-        
-    print(yt.mlist)
-    for i in range(len(yt.mlist)):
-        data = DataPoints(project=proj,month=yt.mlist[i],y1=yt.y1[i],y2=yt.y2[i])
-        data.save()
-    print("from search: ",yt.mlist)
-    print("from search: ",yt.y1)
-    print("from search: ",yt.y2)
-
-    return render(request, 'base/project.html',{"projects": proj,"labels":yt.mlist,"y1":yt.y1, "y2":yt.y2})
-    
-
 def header(request):
     return render(request, 'base/header.html')
 
@@ -163,7 +143,7 @@ def login_request(request):
                     context={"form":form})
 
 def deleteTask(request,pk):
-    pro = Project.objects.get(id=pk)
+    pro = Project2.objects.get(id=pk)
     pro.delete()
     return  redirect('/home')
 
