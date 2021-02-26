@@ -1,3 +1,17 @@
-# header H1
-A django web app to do sentiment analysis of YouTube video titles. Users can search for specific brand or product. Using 
-sentiment of the  video titles, views, likes and dislikes the app determines how popular is the brand or product that the user searched.
+# Youtube Sentiment Analysis
+
+## Find What's Popular on Youtube
+Find what's popular on YouTube by doing Sentiment Analysis.
+
+## Features
+
+Search for a keyword
+
+Automatic tagging 
+
+Plot popularity over a period of time on graph
+
+
+## How it Works
+Find popularity of a product, brand or personality by doing sentiment analysis of the video titles mentioning that product, brand or personality. 
+
